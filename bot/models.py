@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Disease(models.Model):
-	user = models.ForeignKey(User)
+	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	#title = models.CharField(max_length=50)
 	count = models.IntegerField(default=0)
 	#temp = models.IntegerField(default=0)
