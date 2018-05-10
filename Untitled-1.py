@@ -4,12 +4,19 @@ from rest_framework.parsers import MultiPartParser, FormParser,FileUploadParser
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
 from django.http import HttpResponse
-from btpbot import *
+from bot.btpbot import *
 from django.contrib.auth.models import User
-import sys
+#import sys
 from bot.models import Disease
-reload(sys)
-sys.setdefaultencoding("utf-8")
+#reload(sys)
+#sys.setdefaultencoding("utf-8")
+
+import re
+def isValidEmail(email):
+ if len(email) > 7:
+ 	if re.match("(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", email) != None:
+ 		return True
+ return False
 
 class Login(APIView):
 	def get(self,request):
@@ -30,6 +37,11 @@ class Login(APIView):
 			user.last_name = "0" # count for Hello
 			user.set_password("healint")
 			user.save()
+			dis = Disease()
+			dis.user = user
+			dis.count = 0
+			dis.save()
+
 			ret = {'msg': 'LoginSuccessful'}
 			return Response(ret)
 		else:
@@ -59,13 +71,19 @@ class BotAPI(APIView):
 
 		uid = request.data.get('UniqueId', False)
 		UserMsg = request.data.get('UserMsg', False)
+		severity = request.data.get('severity',False)
 
 		try:
 			user = User.objects.get(last_name="0",username=uid)
-			User.objects.filter(last_name="0",username=uid).update(last_name="1")
-			User.objects.filter(last_name="1",username=uid).update(first_name=UserMsg)
-			ret = {'KeyboardReq':'1','BotMsg':"'How Are You? '' '",'BotSuggestion':list()}
-			return Response(ret)
+			if(isValidEmail(UserMsg)):
+
+				User.objects.filter(last_name="0",username=uid).update(last_name="1")
+				User.objects.filter(last_name="1",username=uid).update(first_name="")
+				return Response(ret)
+			else:
+				ret = {'KeyboardReq':'1','BotMsg':"Please Enter Valid Email Address to chat with us !!",'BotSuggestion':list()}
+				return Response(ret)
+
 
 		except User.DoesNotExist:
 
@@ -73,7 +91,10 @@ class BotAPI(APIView):
 				user = User.objects.get(last_name="1",username=uid)
 
 				User.objects.filter(last_name="1",username=uid).update(last_name="2")
-
+                temp=User.objects.filter(last_name="1",username=uid)
+                val = str(temp.values_list("first_name",flat=True)[0])
+                val+=","+UserMsg
+                User.objects.filter(last_name="1",username=uid).update(first_name=val)
 				st = init(UserMsg) + " Please Tell Me Your Symptom?"
 				global vvv
 				ret = {'KeyboardReq':'1','BotMsg':st,'BotSuggestion':list()}
@@ -84,23 +105,41 @@ class BotAPI(APIView):
 				try:
 
 					user = User.objects.get(last_name="2",username=uid)
-					print("hi i am here")
-					print("hitesh is entering stemmer")
-					mainSet = set()
-					mainSet = stemmer(UserMsg,uid)
-					if(len(mainSet)==5):
-						print(mainSet)
-						mainSet = list(mainSet)
-						aa = "I have predicted that you have " + str(mainSet)
-						ret = {'KeyboardReq':'1','BotMsg':aa,'BotSuggestion':list()}
+
+					dis = Disease.objects.filter(user=user)
+					val = dis.values_list("count",flat=True)[0]
+					val += 1
+					Disease.objects.filter(user=user).update(count=val)
+
+					if(val<=5):
+						mainSet = set()
+						mainSet = get_symptoms(UserMsg,uid,int(severity))
+						ret = {'isDisease':0,'KeyboardReq':'0','BotMsg':"Ok!! Please Select The Symptoms from the Given List!!' '",'BotSuggestion':list(mainSet)}
 						return Response(ret)
 					else:
-						print("hitesh going out from stemmer")
-						ret = {'KeyboardReq':'0','BotMsg':"Ok!! Now, Please Select The Symptoms from the Given List!!' '",'BotSuggestion':list(mainSet)}
+						mainSet = set()
+						get_symptoms(UserMsg,uid,int(severity))
+						mainSet = get_diseases()
+						aa = "I have predicted that you have"
+						ret = {'isDisease':1,'KeyboardReq':'1','BotMsg':aa,'BotSuggestion':list(),'DiseaseSuggestion':list(mainSet)}
+
+						#return Response(ret)
+
+						u = User.objects.get(username = uid)
+						u.delete()
+
 						return Response(ret)
 
+
+
+
+
+
+
 				except User.DoesNotExist:
-					print("opopopopo")
-					ret = dict()
+					##print("opopopopo")
+					mainSet = get_diseases()
+					aa = "I have predicted that you have " + str(mainSet)
+					ret = {'isDisease':1,'KeyboardReq':'1','BotMsg':'','BotSuggestion':list(),'DiseaseSuggestion':list(mainSet)}
 
 					return Response(ret)

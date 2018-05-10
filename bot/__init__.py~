@@ -1,10 +1,10 @@
-#import sys
+import sys
 import csv
-#reload(sys)
-import operator
-#sys.setdefaultencoding('utf-8')
+reload(sys)
 
-reader = csv.reader(open('data.csv', 'r'), delimiter=',')
+sys.setdefaultencoding('utf-8')
+
+reader = csv.reader(open('data.csv', 'rb'), delimiter=',')
 
 diseases = set()
 symptoms = set()
@@ -22,14 +22,14 @@ dataset = dict()
 for i in range(len(symptoms)):
 	dataset[symptoms[i]] = dict()
 
-reader = csv.reader(open('data.csv', 'r'), delimiter=',')
+reader = csv.reader(open('data.csv', 'rb'), delimiter=',')
 
 for i,line in enumerate(reader):
     dataset[line[0]][line[1]] = line[3]
 
 #print(dataset)
 
-reader = csv.reader(open('data.csv', 'r'), delimiter=',')
+reader = csv.reader(open('data.csv', 'rb'), delimiter=',')
 
 diseases = set()
 symptoms = set()
@@ -46,21 +46,24 @@ dataset1 = dict()
 for i in range(len(diseases)):
 	dataset1[diseases[i]] = dict()
 
-reader = csv.reader(open('data.csv', 'r'), delimiter=',')
+reader = csv.reader(open('data.csv', 'rb'), delimiter=',')
 
 for i,line in enumerate(reader):
     dataset1[line[1]][line[0]] = line[3]
 
+ppp=0
+newData = dict()
+for i in range(len(symptoms)):
+	newData[symptoms[i]]=dict()
+	for j in range(len(symptoms)):
+		if(i!=j):
+			cc=0
+			for key,val in dataset[symptoms[i]].items():
+				print(ppp)
+				ppp=ppp+1
+				for key1,val1 in dataset[symptoms[j]].items():
+					if key1==key:
+						cc=cc+1
+			newData[symptoms[i]][symptoms[j]]=cc
 
 
-myData = dict()
-
-myReader = csv.reader(open('myData.csv', 'r'), delimiter=',')
-for i,line in enumerate(myReader):
-	myData[line[0]] = dict()
-
-myReader = csv.reader(open('myData.csv', 'r'), delimiter=',')
-for i,line in enumerate(myReader):
-	myData[line[0]][line[1]] = int(line[2])
-
-answerr = 0

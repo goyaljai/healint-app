@@ -44,6 +44,13 @@ INSTALLED_APPS = [
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 15240 # higher than the count of fields
 
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'cleancampus.swe@gmail.com'
+EMAIL_HOST_PASSWORD = 'strange#'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -73,7 +80,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'healint.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases

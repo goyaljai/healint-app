@@ -5,14 +5,14 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from nltk import pos_tag, word_tokenize
 from nltk.stem import PorterStemmer
 from nltk.tokenize import sent_tokenize
-import sys
+#import sys
 import math
 from django.contrib.auth.models import User
 from bot import *
 import operator
 from bot.models import Disease
-reload(sys)
-sys.setdefaultencoding("utf-8")
+#reload(sys)
+#sys.setdefaultencoding("utf-8")
 #
 #
 # diseasePrediction = dict()
@@ -29,7 +29,7 @@ sys.setdefaultencoding("utf-8")
 #
 # def func1(string,mainSet,thresh_val,index,uid):
 # 	#string is already stemmed and been founded in the dataset
-# 	###print(string)
+# 	####print(string)
 # 	diseaseSet = set()
 # 	global diseasePrediction
 # 	global symptomsPruned
@@ -45,7 +45,7 @@ sys.setdefaultencoding("utf-8")
 # 	iterr = list(mainSet)
 #
 # 	jai = 0
-# 	##print(iterr)
+# 	###print(iterr)
 # 	for i in range(len(iterr)):
 # 		jai=jai+1
 # 		#diss = Disease.objects.filter(user=user)
@@ -53,12 +53,12 @@ sys.setdefaultencoding("utf-8")
 # 		vall=vall+1
 # 		diseasePrediction[iterr[i]]=vall
 #
-# 	###print("hooooooooooooooooooooooooooooo"+str(diseasePrediction['Anemia']))
+# 	####print("hooooooooooooooooooooooooooooo"+str(diseasePrediction['Anemia']))
 # 	answerDisease = sorted(diseasePrediction.items(), key=operator.itemgetter(1))
 # 	answerDisease.reverse()
 # 	finalAnswer=set()
-# 	##print("0000")
-# 	##print(answerDisease)
+# 	###print("0000")
+# 	###print(answerDisease)
 # 	for i in range(len(answerDisease)):
 # 		if(diseasePrediction[answerDisease[0][0]]>5):
 # 			finalAnswer.add(answerDisease[i][0])
@@ -69,7 +69,7 @@ sys.setdefaultencoding("utf-8")
 #
 #
 #
-# 	###print(diseasePrediction)
+# 	####print(diseasePrediction)
 #
 # 	lst = list(mainSet)
 #
@@ -122,16 +122,16 @@ sys.setdefaultencoding("utf-8")
 #
 # 			tokenlist = word_tokenize(symptoms[i])
 # 			for j in range(len(tokenlist)):
-# 				##print("symptoms[i]")
-# 				##print(ps.stem(word))
-# 				##print(ps.stem(tokenlist[j]))
+# 				###print("symptoms[i]")
+# 				###print(ps.stem(word))
+# 				###print(ps.stem(tokenlist[j]))
 # 				if(ps.stem(word) in ps.stem(tokenlist[j])):
 #
 # 					prediction.add(symptoms[i])
 #
 # 	prediction = list(prediction)
 #
-# 	##print(prediction)
+# 	###print(prediction)
 # 	mainSet = set(diseases)
 # 	for i in range(len(prediction)):
 # 		mainSet = func1(prediction[i],set(mainSet),len(prediction)-1,i,uid)
@@ -143,18 +143,28 @@ diseaseSet = set(diseases)
 preDiseases = dict()
 hmap_symptoms = dict()
 meanings = dict()
+urls = dict()
 global jaiii
 jaiii=0
 
+def re_init():
+	for symptom in symptoms:
+		hmap_symptoms[symptom]=0
+
+	for disease in diseases:
+		preDiseases[disease]=0
+
 def preComputeDiseases():
 
-	reader = csv.reader(open('meanings.csv', 'rb'), delimiter=',')
+	reader = csv.reader(open('meanings.csv', 'r'), delimiter=',')
 	for i,line in enumerate(reader):
 		meanings[line[0]] = line[1]
 
+	reader = csv.reader(open('urls.csv', 'r'), delimiter=',')
+	for i,line in enumerate(reader):
+		urls[line[0]] = line[1]
+
 	for disease in diseases:
-		if(disease=='Dry Eye Syndromes'):
-			print("999999999999999999999999999999999999999999")
 		preDiseases[disease]=0
 
 def preComputeSymptoms():
@@ -165,26 +175,26 @@ def preComputeSymptoms():
 preComputeDiseases()
 preComputeSymptoms()
 
-def getDiseases(symptom):
+def getDiseases(symptom,severity):
 	diseaseDict = dict()
 
 	diseaseDict = dataset[symptom]
 	count=0
 
-	#print(len(preDiseases))
+	##print(len(preDiseases))
 
 	for key in sorted(diseaseDict.items(), key=operator.itemgetter(1),reverse=True):
 		count+=1
 		if(count==20):
 			break
 		#tempDiseaseSet.add(key)
-		preDiseases[str(key[0])]+=1
-		print(str(key[0]))
-		print(preDiseases[str(key[0])])
+		preDiseases[str(key[0])]+=severity
+		#print(str(key[0]))
+		#print(preDiseases[str(key[0])])
 
-def get_symptoms(string,uid):
+def get_symptoms(string,uid,severity):
 	global jaiii
-	hmap_symptoms
+	#hmap_symptoms
 	#print(jaiii)
 	jaiii+=1
 	#preComputeDiseases()
@@ -209,7 +219,7 @@ def get_symptoms(string,uid):
 		newString = newString + lemma
 		newString = newString + " "
 
-        prediction = set()
+	prediction = set()
 
 	ps = PorterStemmer()
 
@@ -218,28 +228,44 @@ def get_symptoms(string,uid):
 
 			tokenlist = word_tokenize(symptoms[i])
 			for j in range(len(tokenlist)):
-				##print("symptoms[i]")
-				##print(ps.stem(word))
-				##print(ps.stem(tokenlist[j]))
+				###print("symptoms[i]")
+				###print(ps.stem(word))
+				###print(ps.stem(tokenlist[j]))
 				if(ps.stem(word) in ps.stem(tokenlist[j])):
 					prediction.add(symptoms[i])
 
 	predicted_symptoms = list(prediction)
 
+	if(len(predicted_symptoms)==0):
+		final_symptoms_list = list()
+		final_symptoms_list.append({"symptom":"Headache","meaning":meanings["Headache"]})
+		final_symptoms_list.append({"symptom":"Cough","meaning":meanings["Cough"]})
+		final_symptoms_list.append({"symptom":"Fever","meaning":meanings["Fever of Unknown Origin"]})
+		final_symptoms_list.append({"symptom":"Muscle Cramp","meaning":meanings["Muscle Cramp"]})
+		final_symptoms_list.append({"symptom":"Pain","meaning":meanings["Pain"]})
+		final_symptoms_list.append({"symptom":"Sneezing","meaning":meanings["Sneezing"]})
+		final_symptoms_list.append({"symptom":"Nausea","meaning":meanings["Nausea"]})
+		final_symptoms_list.append({"symptom":"Vomiting","meaning":meanings["Vomiting"]})
+		final_symptoms_list.append({"symptom":"Flank Pain","meaning":meanings["Flank Pain"]})
+		return final_symptoms_list
+
+
+
+
 	for symptom in predicted_symptoms:
-		getDiseases(symptom)
+		getDiseases(symptom,severity)
 		symptom_data = dict()
 		count = 0
 		symptom_data = myData[symptom]
 		for key in sorted(symptom_data.items(), key=operator.itemgetter(1),reverse=True):
-			#print(key)
+			##print(key)
 			hmap_symptoms[key[0]]+=int(key[1])
 			count+=1
 			if(count==20):
 				break
 
 
-	#print(hmap_symptoms)
+	##print(hmap_symptoms)
 
 	final_symptoms_list = list()
 
@@ -258,7 +284,7 @@ def get_diseases():
 	count=0
 	answer = list()
 	for disease in sorted(preDiseases.items(), key=operator.itemgetter(1),reverse=True):
-		answer.append(disease[0])
+		answer.append({"disease":disease[0],"url":urls[disease[0]]})
 		count+=1
 		if(count==6):
 			break
@@ -282,7 +308,7 @@ def init(string):
 		return "Thats Great, Good to hear!! Now Coming back to your Symptoms!! Lets Discuss!!"
 
 	if(flag==2):
-		return "Ok!! Now Coming back to your Symptoms!! Lets Discuss!!"
+		return "Okay!! Now Coming back to your Symptoms!! Lets Discuss!!"
 
 	if(flag==0):
-		return "Ohh!! According to my Research, Playing Music and Eating Good Food will make you happy.. Now Coming back to your Symptoms!! Lets Discuss!!"
+		return "Don't Worry!! According to my Research, Playing Music and Eating Good Food will make you happy.. Now Coming back to your Symptoms!! Lets Discuss!!"

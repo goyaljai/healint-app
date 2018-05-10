@@ -8,7 +8,7 @@ reader = csv.reader(open('data.csv', 'rb'), delimiter=',')
 symptoms = set()
 finalLst = list()
 for i,line in enumerate(reader):
-	symptoms.add(line[0])
+	symptoms.add(line[1])
 
 i=1
 for string in list(symptoms):
@@ -23,16 +23,16 @@ for string in list(symptoms):
     answer3=""
     answer=""
     try:
-        answer1 = duckduckgo.query(string).abstract.text
+        answer1 = duckduckgo.query(string).abstract.url
     except Exception as e:
         pass
 
     try:
-        answer2 = duckduckgo.query(string).results[0].text
+        answer2 = duckduckgo.query(string).results[0].url
     except Exception as e:
         pass
     try:
-        answer3 = duckduckgo.query(string).related[0].text
+        answer3 = duckduckgo.query(string).related[0].url
     except Exception as e:
         pass
     #answer = answer.strip().
@@ -47,11 +47,12 @@ for string in list(symptoms):
             answer = answer2
     else:
         answer = answer1
-    answer = answer.split(".")[0]+"."
+    #answer = answer.split(".")[0]
+    print(answer)
     lst.append(answer)
     finalLst.append(lst)
 
-f = open('123meanings.csv', 'w')
+f = open('urls.csv', 'w')
 with f:
     writer = csv.writer(f)
     for lst in finalLst:
