@@ -1,0 +1,12 @@
+-f /usr/share/pip-wheels
+certifi==2018.4.16
+chardet==3.0.4
+Django==1.11.12
+djangorestframework==3.8.2
+idna==2.6
+nltk==3.2.5
+pytz==2018.4
+requests==2.18.4
+six==1.11.0
+urllib3==1.22
+vaderSentiment==3.2.1
